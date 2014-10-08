@@ -1,5 +1,7 @@
-# shippable-slack-notifier
+# a FINE shippable setup
 
-A Slack notifier derived from Shippable's example:  
+Base files for our internal [Shippable](https://www.shippable.com) setup.
+
+Slack notifier derived from:  
 https://github.com/Shippable/sample-slack-notifications
 
