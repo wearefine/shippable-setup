@@ -12,7 +12,7 @@ def get_data_from_git(format_string, commit):
   return subprocess.check_output(['git', 'log', '-1', '--format=format:%s' % format_string, commit])
 
 def get_author(commit):
-  return get_data_from_git('%an <%ae>', commit)
+  return get_data_from_git('%an', commit)
 
 def get_date(commit):
   return get_data_from_git('%aD', commit)
@@ -42,7 +42,7 @@ def post_message(connection, url, success, project):
     'icon_emoji': ':shipit:',
     'fields': [
       {
-        'title': '%s - %s branch' % (project, branch),
+        'title': '%s (%s)' % (project, branch),
         'value': '<%s|Build #%s> %s' % (build_url, build_number, status_text)
       },
       {
