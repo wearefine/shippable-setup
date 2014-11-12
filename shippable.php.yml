@@ -1,0 +1,35 @@
+language: php
+php:
+  - 5.4
+branches:
+  only:
+    - dev
+    - stage
+    - master
+cache: true
+notifications:
+   email: false
+env:
+  global:
+    - PROJECT=example.com
+    - THEMENAME=example #for WordPress, otherwise modify the PATH var in before_script
+    - SLACK_ORG=wearefine
+    - CI_REPORTS=shippable/testresults
+    - DEPLOY_BRANCH=$BRANCH
+    - PORT=8022
+    - USER=user
+    - SERVER=afineserver.com
+    - secure: FpiO+8qrxOgKfFrg8Y1pwd7w/GjhN+WuYZ60A/LN8ATIF1kFEzXO+VB8HThIZjsKoHzmjbyGi/LXIO7cfLdiyehf4KQ6xUTPHYGlmRaBjmv5iDtCClYjKFac9d/+9TLcygzHlXxhyKKyjVx1DaTB3G6qp14mGE9do36GXeE5PIPDPyQG+9otjcrb38TTuiiIHNwrDgnWZSR9UCurKaycki+TiVpUiheruP7zY1oYBTKotb7VKqF9aXDYHJc9e89oMCqLbFQZd3A0aNgUILV0ORZwOYneXuTNzSPqpDpDHYkzE+gi+mSKEPBx0TADslubnySCK6OgOVTGLtrjzkm0Fw==
+before_script:
+  - mkdir -p shippable/testresults
+  - mkdir -p shippable/codecoverage
+  - if [ "$BRANCH" == "master" ] ; then DEPLOY_BRANCH="prod" ; fi
+  - if [ ! -d "shippable-setup" ]; then git clone git@github.com:wearefine/shippable-setup.git ; fi
+  - PATH=/var/www/$PROJECT/$DEPLOY_BRANCH/www/wp-content/themes/$THEMENAME
+script:
+  - ssh-agent bash -c 'ssh-add /home/shippable/.ssh/id_rsa; ssh -i /home/shippable/.ssh/id_rsa -vT git@bitbucket.org'
+  - rsync -avz -e "ssh -p $PORT" --exclude 'shippable*' --exclude '.git' . $USER@$SERVER:$PATH --delete --delete-excluded
+after_failure:
+  - python shippable-setup/slack_notifier.py --project $PROJECT --org $SLACK_ORG --token $SLACK_TOKEN
+after_success:
+  - python shippable-setup/slack_notifier.py --project $PROJECT --org $SLACK_ORG --token $SLACK_TOKEN -s
