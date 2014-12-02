@@ -21,7 +21,7 @@ before_script:
   - mysql -e 'create database if not exists my_app_test;'
   - rake db:schema:load RAILS_ENV=test
   - if [ "$BRANCH" == "master" ] ; then DEPLOY_BRANCH="prod" ; fi
-  - git clone git@github.com:wearefine/shippable-setup.git
+  - if [ ! -d "shippable-setup" ] ; git clone git@github.com:wearefine/shippable-setup.git ; fi
 script:
   - rspec -f JUnit -o shippable/testresults/results.xml
   - ssh-agent bash -c 'ssh-add /home/shippable/.ssh/id_rsa; ssh -i /home/shippable/.ssh/id_rsa -vT git@bitbucket.org; cap $DEPLOY_BRANCH deploy'
