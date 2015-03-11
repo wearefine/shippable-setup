@@ -17,13 +17,14 @@ env:
     - DEPLOY_BRANCH=$BRANCH
     - secure: FpiO+8qrxOgKfFrg8Y1pwd7w/GjhN+WuYZ60A/LN8ATIF1kFEzXO+VB8HThIZjsKoHzmjbyGi/LXIO7cfLdiyehf4KQ6xUTPHYGlmRaBjmv5iDtCClYjKFac9d/+9TLcygzHlXxhyKKyjVx1DaTB3G6qp14mGE9do36GXeE5PIPDPyQG+9otjcrb38TTuiiIHNwrDgnWZSR9UCurKaycki+TiVpUiheruP7zY1oYBTKotb7VKqF9aXDYHJc9e89oMCqLbFQZd3A0aNgUILV0ORZwOYneXuTNzSPqpDpDHYkzE+gi+mSKEPBx0TADslubnySCK6OgOVTGLtrjzkm0Fw==
 before_script:
+  - rm -Rf shippable-setup
+  - git clone git@github.com:wearefine/shippable-setup.git
   - mkdir -p shippable/testresults
   - mysql -e 'create database if not exists my_app_test;'
   - rake db:schema:load RAILS_ENV=test
   - if [ "$BRANCH" == "master" ] ; then DEPLOY_BRANCH="prod" ; fi
-  - if [ ! -d "shippable-setup" ] ; then git clone git@github.com:wearefine/shippable-setup.git ; fi
 script:
-  - rspec -f JUnit -o shippable/testresults/results.xml
+  - xvfb-run rspec -f JUnit -o shippable/testresults/results.xml
   - ssh-agent bash -c 'ssh-add /home/shippable/.ssh/id_rsa; ssh -i /home/shippable/.ssh/id_rsa -vT git@bitbucket.org; cap $DEPLOY_BRANCH deploy'
 after_failure:
   - python shippable-setup/slack_notifier.py --project $PROJECT --org $SLACK_ORG --token $SLACK_TOKEN
